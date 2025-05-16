@@ -2,6 +2,14 @@ from phoenixapi import phoenix, finder
 import json
 import time
 
+def calculate_tax(price, amount=5):
+    # Calculate total price
+    total_price = price * amount
+
+    total_tax = total_price * 0.0005
+    
+    return int(total_tax)
+
 def check_and_update_price_fairy(min_price_threshold=200000):
     print("Fairy Check...")
     api = finder.create_api_from_name("war1")
@@ -52,7 +60,9 @@ def check_and_update_price_fairy(min_price_threshold=200000):
                                     print(f"WARNING: Market price ({new_price}) is below minimum threshold ({min_price_threshold})")
                                     print("Not updating price to protect your profits")
                                 else:
-                                    packet_for_uploading_item_to_nb = f"c_reg 0 1 0 9 4 1 0 5 {new_price} 555 2"
+                                    tax = calculate_tax(new_price)
+                                    print(f"Fairy TAX: {tax}")
+                                    packet_for_uploading_item_to_nb = f"c_reg 0 1 0 9 4 1 0 5 {new_price} {tax} 2"
                                     print(f"Sending packet: {packet_for_uploading_item_to_nb}")
                                     api.send_packet(packet_for_uploading_item_to_nb)
                                     print("Price updated!")
@@ -118,7 +128,9 @@ def check_and_update_price_draco(min_price_threshold=20000):
                                     print(f"WARNING: Market price ({new_price}) is below minimum threshold ({min_price_threshold})")
                                     print("Not updating price to protect your profits")
                                 else:
-                                    packet_for_uploading_item_to_nb = f"c_reg 0 1 1 9 4 1 0 5 {new_price} 187 2"
+                                    tax = calculate_tax(new_price)
+                                    print(f"Draco TAX: {tax}")
+                                    packet_for_uploading_item_to_nb = f"c_reg 0 1 1 9 4 1 0 5 {new_price} {tax} 2"
                                     print(f"Sending packet: {packet_for_uploading_item_to_nb}")
                                     api.send_packet(packet_for_uploading_item_to_nb)
                                     print("Price updated!")
