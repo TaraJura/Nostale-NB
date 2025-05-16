@@ -102,47 +102,24 @@ ITEMS = [
         "character": "war1",
         "search_packet": "c_blist 0 0 0 0 0 0 0 0 1 5500",
         "register_template": "c_reg 0 1 1 9 4 1 0 5 {price} {tax} 2",
-        "min_price": 20000
+        "min_price": 31000
     },
     {
         "name": "Job Stone",
         "character": "war1",
         "search_packet": "c_blist 0 0 0 0 0 0 0 0 3 1362 5195 9075",
         "register_template": "c_reg 0 1 2 9 4 1 0 5 {price} {tax} 2",
-        "min_price": 80000
+        "min_price": 75000
+    },
+    {
+        "name": "Buble",
+        "character": "war1",
+        "search_packet": "c_blist  0 0 0 0 0 0 0 0 2 2174 10029",
+        "register_template": "c_reg 0 2 59 10 3 1 0 5 {price} {tax} 2",
+        "min_price": 40000
     }
 ]
 
-# Original functionality preserved as separate functions for compatibility
-def check_and_update_price_fairy(min_price_threshold=200000):
-    return check_and_update_price(
-        character_name="war1",
-        item_type=0,
-        search_packet="c_blist 0 0 0 0 0 0 0 0 2 5370 9116",
-        register_packet_template="c_reg 0 1 0 9 4 1 0 5 {price} {tax} 2",
-        min_price_threshold=min_price_threshold,
-        item_name="Fairy"
-    )
-
-def check_and_update_price_draco(min_price_threshold=20000):
-    return check_and_update_price(
-        character_name="war1",
-        item_type=1,
-        search_packet="c_blist 0 0 0 0 0 0 0 0 1 5500",
-        register_packet_template="c_reg 0 1 1 9 4 1 0 5 {price} {tax} 2",
-        min_price_threshold=min_price_threshold,
-        item_name="Draco"
-    )
-
-def check_and_update_price_job_stone(min_price_threshold=80000, item_name="Job Stone"):
-    return check_and_update_price(
-        character_name="war1",
-        item_type=2,
-        search_packet="c_blist 0 0 0 0 0 0 0 0 3 1362 5195 9075",
-        register_packet_template="c_reg 0 1 2 9 4 1 0 5 {price} {tax} 2",
-        min_price_threshold=min_price_threshold,
-        item_name=item_name
-    )
 
 if __name__ == "__main__":
     try:
@@ -163,13 +140,12 @@ if __name__ == "__main__":
                     min_price_threshold=item['min_price'],
                     item_name=item['name']
                 )
-                print(f"----------[ {item['name']} Complete ]----------")
-                
-                # Small delay between items
                 time.sleep(2)
+
+                print(f"----------[ {item['name']} Complete ]----------")
             
-            print("\nWaiting 30 seconds before next check...")
-            time.sleep(30)
+            print("\nWaiting 15 seconds before next check...")
+            time.sleep(15)
             
     except KeyboardInterrupt:
         print("\nScript terminated by user.")
