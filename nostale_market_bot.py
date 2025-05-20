@@ -109,17 +109,23 @@ ITEMS = [
         "character": "war1",
         "search_packet": "c_blist 0 0 0 0 0 0 0 0 3 1362 5195 9075",
         "register_template": "c_reg 0 1 2 9 4 1 0 5 {price} {tax} 2",
-        "min_price": 75000
+        "min_price": 9999999999
     },
     {
         "name": "Buble",
         "character": "war1",
         "search_packet": "c_blist  0 0 0 0 0 0 0 0 2 2174 10029",
         "register_template": "c_reg 0 2 59 10 3 1 0 5 {price} {tax} 2",
+        "min_price": 43000
+    },
+    {
+        "name": "Friend Wing",
+        "character": "war1",
+        "search_packet": "c_blist  0 0 0 0 0 0 0 0 3 2160 2312 10048",
+        "register_template": "c_reg 0 2 58 10 3 1 0 5 {price} {tax} 2",
         "min_price": 40000
     }
-]
-
+] 
 
 if __name__ == "__main__":
     try:
