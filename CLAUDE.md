@@ -2,8 +2,70 @@
 
 A single-file Python script (`nostale_market_bot.py`) that talks to a running NosTale game client through the local `phoenixapi` package and automates two flows on the in-game NosBazar (player auction house):
 
-1. **Relisting** (default mode) — for items the user is selling, query the cheapest current listing, undercut by 1 gold, and re-register at the new price (with a `min_price` floor to protect profit margins).
-2. **Profitability monitoring** (`-monitor` flag) — for items the user *might* buy from NosMall (premium currency shop) or from NPC vendors and resell on NosBazar, query the cheapest current listing and compute a profitability ratio against the source cost. Sorted descending so the most profitable flips sit at the top.
+1. **Relisting** (default mode) - for items the user is selling, query the cheapest current listing, undercut by 1 gold, and re-register at the new price (with a `min_price` floor to protect profit margins).
+2. **Profitability monitoring** (`-monitor` flag) - for items the user *might* buy from NosMall (premium currency shop) or from NPC vendors and resell on NosBazar, query the cheapest current listing and compute a profitability ratio against the source cost. Sorted descending so the most profitable flips sit at the top.
+
+---
+
+## Game context (what NosTale is and why this bot exists)
+
+**NosTale** is a free-to-play 2.5D anime-style MMORPG developed by Entwell and published by Gameforge. It launched in 2006 and is still actively run. Players pick from five classes (Adventurer, Sorcerer, Archer, Swordsman, Martial Artist), level both a combat level and a job level, and progress through PvE quests, dungeons, and PvP content. ([Class wiki](https://nostale.fandom.com/wiki/Class), [NosTale wiki](https://nostale.fandom.com/wiki/NosTale))
+
+The relevant systems for understanding this bot:
+
+### Two currencies
+
+- **Gold** - the in-game currency. Earned by killing monsters, selling drops, completing quests, running dungeons (e.g. Spacetime Rift), and trading on NosBazar. This is the currency the bot's profit numbers are denominated in. ([Gold farming guide](https://www.mmocs.com/news/nostale-guide-what-you-need-to-know-about-gold-farming.html))
+- **NosDollars (ND)** - Gameforge's real-money premium currency. Bought with cash via the Steam top-up flow or the Gameforge shop. ND is **not** earnable through gameplay - it only enters the economy via real-money purchases. ([NosDollars Steam guide](https://steamcommunity.com/sharedfiles/filedetails/?id=1138157981))
+
+### NosMall (the cash shop)
+
+The **NosMall** is the official in-game cash shop where players spend ND on items not obtainable through normal play. ([NosMall wiki](https://nostale.fandom.com/wiki/Nosmall)) Categories of items relevant to this bot:
+
+- **Specialist Card protection scrolls** (`Lower SP Protection`, `Higher SP Protection`, `Dragon Card Protection`) - these protect a Specialist Card from being destroyed during upgrade attempts. Without them, a failed upgrade can wipe out hours/days/weeks of farming. They're a *core* p2w item because the SP system is the main power-progression treadmill. ([Protection scroll announcement](https://store.steampowered.com/news/posts/?feed=steam_community_announcements&appids=550470))
+- **Equipment Protection Scrolls** - same idea but for weapon/armor upgrades.
+- **Cancel Cards** - remove a stat from an item so it can be re-rolled.
+- **Blessed Stones** - upgrade material for SP cards.
+- **Inner Skill Tickets, Blessing Amulets, Fairy XP Boosters** - QoL/progression boosters.
+- **Pets, partners, costumes, name change tickets** - cosmetic and convenience items.
+- **NosMerchant Medal** - a NosMall item that grants vendor perks: no NosBazar sale fee, longer listing duration (longer than the default 30 days), discounted listing fees, and the ability to list up to 100 items at once. ([NosBazar overview](http://gameguide.nostale.co.uk/main/game_trade))
+
+These items are exactly the ones in `ITEMS` with a `nos_cost` field. Their ND values (e.g. `2.5`, `5`, `50`, `100`) come from the user's NosMall price spreadsheet.
+
+### NosBazar (the player auction house)
+
+The **NosBazar** is NosTale's player-to-player auction house, accessed by talking to a Bibi Basar NPC in any major town. ([NosBazar guide](http://gameguide.nostale.co.uk/main/game_trade)) Key mechanics:
+
+- Listings are paid for in **gold**, not ND. So the entire trade flow is "buy in ND, sell in gold."
+- Insertion fees and sale fees apply (waived/reduced with the NosMerchant Medal).
+- Maximum price per listing is 100,000,000 gold; default listing duration is up to 30 days.
+- Listings are filterable by item, but *only* by VNUM (item ID). The display name in the search bar doesn't matter to the server - it filters server-side by VNUM. (This is why the bot's `name` field is purely cosmetic and the real search happens via vnums in `search_packet`.)
+
+### The "buy in ND, sell in gold" flip economy
+
+Because NosMall items can only be bought with ND but NosBazar settles in gold, there's a natural arbitrage market: players who don't want to spend real money buy NosMall items second-hand from players who do, paying gold for them. This creates a stable **gold-per-ND exchange rate** that varies by item:
+
+- High-demand consumables (Bubble of Conservation, Wings of Friendship, Speakers, etc.) trade at the highest g/ND ratios because they're consumed quickly and constantly in demand.
+- High-cost progression items (Pen Specialist 100 ND, Inner Skill Ticket 50 ND) trade at lower g/ND but absolute gold values are large.
+- The g/ND ratio is essentially the implicit market price of NosTale's premium currency, denominated in farmable gold. Tracking it tells a player which NosMall items convert ND to gold most efficiently.
+
+The reverse flow also exists: items bought cheap from NPC vendors (e.g. Pet Food at ~300g) sometimes resell on NosBazar for several multiples of NPC price, due to convenience or location. This is what the `npc_cost` field tracks. ([Reselling discussion](https://www.mmocs.com/news/nostale-guide-what-you-need-to-know-about-gold-farming.html))
+
+### Why this bot exists
+
+NosTale is widely considered pay-to-win. The game's progression treadmill (Specialist Card upgrades, equipment upgrades) has random failure outcomes that destroy expensive items, and the only reliable insurance is NosMall protection scrolls bought with real money. ([Card upgrading wiki](https://nostale.fandom.com/wiki/Card_Upgrading))
+
+A player who wants to compete *without* spending money has two options:
+1. **Farm gold** in-game and **buy NosMall items second-hand** from other players via NosBazar.
+2. **Flip items** - buy cheap from NosMall (or NPC), resell on NosBazar at a markup, accumulate gold.
+
+Both strategies require knowing the *current* gold-per-ND exchange rate for each NosMall item, since prices fluctuate constantly with supply/demand. Manually checking 17+ items every few minutes via the in-game NosBazar search is tedious. **This bot does that automatically:**
+
+- `-monitor` mode polls the cheapest current NosBazar listing for every item the user tracks and computes profitability against the source cost (ND for NosMall items, gold for NPC items).
+- The result is a live, sorted "best flips right now" table - the user can see at a glance which item is currently the most efficient gold→ND conversion (or NPC→NB flip).
+- The relist mode (default) handles the *seller* side of the same trade: keeping the user's own listings competitive (1g cheaper than the cheapest competitor) without manually re-listing every few minutes.
+
+In short: this bot automates the price-discovery and listing-maintenance chores of being a NosBazar trader, so a non-paying player can efficiently farm gold and exchange it for NosMall items at the best available rates.
 
 ## Running
 

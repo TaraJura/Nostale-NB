@@ -30,13 +30,13 @@ def open_bazaar(api, verbose=False):
     """Open the NosBazar window by replaying the in-game NPC interaction.
 
     Sends:
-      npc_req 2 10188              — request dialog with the NosBazar NPC (Bibi Basar)
-      n_run 60 0 2 10188           — click the "NosBazar" option in the dialog
-      c_blist 0 0 0 0 0 0 0 0 0    — init bazaar listing (no filter)
-      c_slist 0 0 0                — init seller list
+      npc_req 2 10188              - request dialog with the NosBazar NPC (Bibi Basar)
+      n_run 60 0 2 10188           - click the "NosBazar" option in the dialog
+      c_blist 0 0 0 0 0 0 0 0 0    - init bazaar listing (no filter)
+      c_slist 0 0 0                - init seller list
 
     Returns True once the server confirms with an rc_blist response.
-    Returns False if no rc_blist arrives within 3s — meaning the NPC isn't
+    Returns False if no rc_blist arrives within 3s - meaning the NPC isn't
     nearby (or the player isn't in the same map).
     """
     # Drain stale packets first so we don't false-positive on a leftover rc_blist
@@ -68,11 +68,11 @@ def fetch_cheapest_listing(api, item_config, verbose=True):
     """Send a c_blist search and return (price, seller, status).
 
     status is one of:
-      "ok"      — got a real listing, price/seller filled
-      "empty"   — server replied but the bazaar has no listings for this item
-      "timeout" — no rc_blist response within the timeout (bazaar likely closed,
-                  rate limited, or wrong client state) — price/seller are None
-      "bad"     — response came back malformed (price/seller None)
+      "ok"      - got a real listing, price/seller filled
+      "empty"   - server replied but the bazaar has no listings for this item
+      "timeout" - no rc_blist response within the timeout (bazaar likely closed,
+                  rate limited, or wrong client state) - price/seller are None
+      "bad"     - response came back malformed (price/seller None)
 
     Caller is responsible for subscribe/unsubscribe of the packet manager.
     """
@@ -112,9 +112,9 @@ def fetch_cheapest_listing(api, item_config, verbose=True):
     if verbose:
         rc = [p for p in seen if "blist" in p]
         if rc:
-            print(f"[{item_name}] timeout — saw blist packets: {rc}")
+            print(f"[{item_name}] timeout - saw blist packets: {rc}")
         else:
-            print(f"[{item_name}] timeout — NO rc_blist response (saw {len(seen)} other packets)")
+            print(f"[{item_name}] timeout - NO rc_blist response (saw {len(seen)} other packets)")
     return None, None, "timeout"
 
 
@@ -179,8 +179,8 @@ def check_and_update_price(api, item_config):
 # vnum: item VNUM to find in inventory
 # inv_tab: 0=Equip, 1=Main, 2=Etc
 # amount: how many to sell per listing
-# nos_cost: how many ND (NosMall diamonds) the item costs in NosMall
-#           — used by -monitor mode to compute gold/ND profitability
+# nos_cost: how many ND (NosDollars) the item costs in NosMall
+#           - used by -monitor mode to compute gold/ND profitability
 # The slot is auto-detected from inventory!
 ITEMS = [
     {
@@ -375,9 +375,9 @@ def monitor_items(apis, items, refresh=30):
     bazaar_open = False  # state: are we currently able to query?
 
     while True:
-        # ── Waiting state ────────────────────────────────────────────────
+        # ---- Waiting state ----
         # If the bazaar isn't open (startup or after a total failure), only
-        # send the lightweight open sequence — never the per-item searches.
+        # send the lightweight open sequence - never the per-item searches.
         # Keep retrying every refresh until the player walks back to the NPC.
         if not bazaar_open:
             failed = try_open_all()
@@ -389,10 +389,10 @@ def monitor_items(apis, items, refresh=30):
                 )
                 time.sleep(refresh)
                 continue
-            print(f"{GREEN}✓ NosBazar open — starting queries.{RESET}")
+            print(f"{GREEN}✓ NosBazar open - starting queries.{RESET}")
             bazaar_open = True
 
-        # ── Active state ─────────────────────────────────────────────────
+        # ---- Active state ----
 
         results = {}  # name -> (item, price, seller, status)
         # Subscribe once per character for the whole pass to avoid subscribe/
@@ -410,7 +410,7 @@ def monitor_items(apis, items, refresh=30):
                     print(f"{RED}Error fetching {item['name']}: {e}{RESET}")
                     return None, None, "error"
 
-            # First pass — pace at 2.5s between items to stay under the
+            # First pass - pace at 2.5s between items to stay under the
             # game's c_blist rate limit (the relist loop uses 2s; we use a bit
             # more since we query everything every refresh).
             for item in items:
@@ -418,7 +418,7 @@ def monitor_items(apis, items, refresh=30):
                 results[item["name"]] = (item, price, seller, status)
                 time.sleep(2.5)
 
-            # Retry pass — transient drops are common, so re-query anything
+            # Retry pass - transient drops are common, so re-query anything
             # that timed out before giving up for this refresh.
             failed = [
                 it for it in items
@@ -521,14 +521,14 @@ def monitor_items(apis, items, refresh=30):
             print(row_line(r, aligns))
         print(hline("└", "┴", "┘"))
 
-        # Warnings — surface timeouts the user couldn't see while logs were silent
+        # Warnings - surface timeouts the user couldn't see while logs were silent
         if all_failed:
             print(
                 f"\n{RED}✗ ALL items timed out. The bazaar window may have closed "
                 f"or the character moved away from the NPC.{RESET}\n"
-                f"{RED}  Pausing item queries — will retry opening the bazaar next refresh.{RESET}"
+                f"{RED}  Pausing item queries - will retry opening the bazaar next refresh.{RESET}"
             )
-            bazaar_open = False  # drop into waiting state — no more search spam
+            bazaar_open = False  # drop into waiting state - no more search spam
         elif timed_out:
             print(
                 f"\n{YELLOW}⚠  {len(timed_out)} item(s) timed out: "
@@ -543,7 +543,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-monitor",
         action="store_true",
-        help="Monitor NosBazar prices and show gold/ND profitability — does not relist anything",
+        help="Monitor NosBazar prices and show gold/ND profitability - does not relist anything",
     )
     parser.add_argument(
         "--refresh",
@@ -585,7 +585,7 @@ if __name__ == "__main__":
                 )
 
         if not apis:
-            print(f"{RED}✗ No characters connected. Nothing to do — exiting.{RESET}")
+            print(f"{RED}✗ No characters connected. Nothing to do - exiting.{RESET}")
             raise SystemExit(1)
 
         # Drop items belonging to characters that failed to connect
