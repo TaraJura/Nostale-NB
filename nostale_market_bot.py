@@ -144,7 +144,7 @@ ITEMS = [
         "character": "root2",
         "vnum": 5370,
         "inv_tab": 1,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 5370 9116",
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 5370 9116 13593 13594",
         "amount": 5,
         "nos_cost": 2.5,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2,
@@ -177,7 +177,7 @@ ITEMS = [
         "character": "root2",
         "vnum": 2174,
         "inv_tab": 2,
-        "search_packet": "c_blist  0 0 0 0 0 0 0 0 2 2174 10029",
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1261 2174 9480 10029",
         "amount": 5,
         "nos_cost": 0.5,
         "unk1": 10, "unk2": 3, "durability": 1, "medal": 2,
@@ -188,7 +188,7 @@ ITEMS = [
         "character": "root2",
         "vnum": 2160,
         "inv_tab": 2,
-        "search_packet": "c_blist  0 0 0 0 0 0 0 0 3 2160 2312 10048",
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 2160 10048",
         "amount": 5,
         "nos_cost": 0.5,
         "unk1": 10, "unk2": 3, "durability": 1, "medal": 2,
@@ -200,85 +200,99 @@ ITEMS = [
     # Items with search_packet=None are skipped automatically by both monitor and relist loops.
     {
         "name": "Pen Specialist",  # "en specialis"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 907, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 907 4240",
         "amount": 5, "nos_cost": 100,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Cancel Card",  # "ancel"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1286, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 13 1286 1452 4717 5884 5885 5886 5887 5996 9041 9380 9874 13710 13731",
         "amount": 5, "nos_cost": 5,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Blessed Stone",  # "stone bles"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1362, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 3 1362 5195 9075",
         "amount": 5, "nos_cost": 1,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Inner Skill Ticket",  # "ner skill ticket"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 5931, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 5931 5932 9109 9110",
         "amount": 5, "nos_cost": 50,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Medicine",
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1765, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 5 1765 2159 2313 2390 10049",
         "amount": 5, "nos_cost": 2,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Fairy Booster",  # "fairy bo"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1296, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 3 1296 5194 9074",
         "amount": 5, "nos_cost": 5,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
-        "name": "Pet Food",
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "name": "Pet Food",  # "met pet food"
+        "character": "root2", "vnum": 2158, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 2158 10024",
         "amount": 5, "nos_cost": 2,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Tarot Card G",  # "tarot card g"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1904, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 1 1904",
         "amount": 5, "nos_cost": 10,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Equipment Protection",  # "ment protec"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1218, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1218 5369 9458 9459",
         "amount": 5, "nos_cost": 20,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Blessing Amulet",  # "sing amulet"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 282, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 8 282 498 4262 4264 5735 8541 8543 8544",
         "amount": 5, "nos_cost": 50,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Higher SP Protection",  # "higher SP Pro"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1364, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1364 9464 9498 9925",
         "amount": 5, "nos_cost": 5,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Lower SP Protection",  # "wer SP Pro"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1363, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1363 9463 9497 9924",
         "amount": 5, "nos_cost": 5,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Speaker",  # "speak"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 2173, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 2173 10028",
         "amount": 5, "nos_cost": 0.5,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
     {
         "name": "Perfume",  # "perfum"
-        "character": "root2", "vnum": None, "inv_tab": None, "search_packet": None,
+        "character": "root2", "vnum": 1156, "inv_tab": None,
+        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 1156 1428",
         "amount": 5, "nos_cost": 0.8,
         "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
     },
@@ -305,7 +319,7 @@ def monitor_items(apis, items, refresh=30):
                     return None, None  # not configured yet — skip silently
                 api = apis[item["character"]]
                 try:
-                    return fetch_cheapest_listing(api, item, verbose=True)
+                    return fetch_cheapest_listing(api, item, verbose=False)
                 except Exception as e:
                     print(f"Error fetching {item['name']}: {e}")
                     return None, None
@@ -347,20 +361,52 @@ def monitor_items(apis, items, refresh=30):
 
         results_list.sort(key=sort_key, reverse=True)
 
-        ts = time.strftime("%H:%M:%S", time.localtime())
-        print(f"\n=== NosBazar Monitor [{ts}] ===")
-        print(f"{'Item':<15} {'ND':>6} {'NB Price':>14} {'Gold/ND':>12}  Seller")
-        print("-" * 65)
+        # Build display rows first so we can size columns to actual content
+        rows = []
         for it, pr, seller in results_list:
             cost = it.get("nos_cost")
             cost_s = f"{cost}" if cost else "-"
             if pr is None:
                 price_s = "n/a"
                 ratio_s = "n/a"
+            elif not cost:
+                price_s = f"{pr:,}"
+                ratio_s = "-"
             else:
                 price_s = f"{pr:,}"
-                ratio_s = f"{int(pr / cost):,}" if cost else "no cost"
-            print(f"{it['name']:<15} {cost_s:>6} {price_s:>14} {ratio_s:>12}  {seller or ''}")
+                ratio_s = f"{int(pr / cost):,}"
+            rows.append((it["name"], cost_s, price_s, ratio_s, seller or ""))
+
+        headers = ("Item", "ND", "NB Price", "Gold/ND", "Seller")
+        widths = [
+            max(len(h), max((len(r[i]) for r in rows), default=0))
+            for i, h in enumerate(headers)
+        ]
+        # Minimum widths for readability
+        widths = [max(w, m) for w, m in zip(widths, (12, 4, 10, 9, 12))]
+
+        def hline(left, mid, right, fill="─"):
+            return left + mid.join(fill * (w + 2) for w in widths) + right
+
+        def row_line(cells, aligns):
+            parts = []
+            for cell, w, a in zip(cells, widths, aligns):
+                if a == "<":
+                    parts.append(f" {cell:<{w}} ")
+                else:
+                    parts.append(f" {cell:>{w}} ")
+            return "│" + "│".join(parts) + "│"
+
+        aligns = ("<", ">", ">", ">", "<")
+
+        ts = time.strftime("%H:%M:%S", time.localtime())
+        print(f"\n=== NosBazar Monitor [{ts}] ===")
+        print(hline("┌", "┬", "┐"))
+        print(row_line(headers, aligns))
+        print(hline("├", "┼", "┤"))
+        for r in rows:
+            print(row_line(r, aligns))
+        print(hline("└", "┴", "┘"))
 
         print(f"\nRefreshing in {refresh}s... (Ctrl+C to stop)")
         time.sleep(refresh)
