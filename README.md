@@ -2,133 +2,235 @@ NB Monitor:
 
 <img width="801" height="490" alt="image" src="https://github.com/user-attachments/assets/8f4da6e7-8b16-44f0-89e3-a6ebe1eeb73d" />
 
+# NosTale Market Bot
 
- 
- # NosTale Market Bot
+A Python bot for NosTale that does two things on the in-game NosBazar (player auction house):
 
-This bot automatically monitors NosTale's NosBazar market prices and updates your listings to keep them competitive.
+1. **Auto-relist** your own listings, undercutting the cheapest competitor by 1 gold (with a `min_price` floor so you never sell at a loss).
+2. **Monitor profitability** of items you might buy from NosMall (premium currency shop) or NPC vendors and resell on NosBazar — sorted gold-per-ND so the most profitable flips appear at the top.
+
+Both modes share the same item configuration list and the same `phoenixapi` connection layer.
+
+---
 
 ## Features
 
-- Automatically monitors market prices for your items
-- Undercuts competitors by 1 gold
-- Sets minimum price thresholds to protect your profits
-- Works with multiple items simultaneously
-- Calculates taxes correctly for all price ranges
+### Relist mode (default)
+- Continuously polls market prices for items in your inventory.
+- Undercuts the cheapest non-self listing by 1 gold.
+- Refuses to undercut below your configured `min_price` (floor protection).
+- Calculates listing tax automatically.
+- Runs across multiple items / multiple characters in one process.
+
+### Monitor mode (`-monitor`)
+- Polls cheapest NosBazar listing for every configured item.
+- Computes profitability against either:
+  - **NosMall ND cost** → shown as `gold/ND` (e.g. `27,596 g/ND`)
+  - **NPC gold cost** → shown as multiplier (e.g. `6.7x`)
+- Renders a sorted box-drawing table with the most profitable items on top.
+- **Automatically opens the NosBazar window in-game** by replaying the NPC interaction packets — no need to click anything before starting.
+- **Auto-recovers** when you walk away from / back to the Bibi Basar NPC. While the NPC is unreachable it sits in a quiet "waiting state" and only sends the lightweight 4-packet open sequence — never spams search packets.
+- Color-coded warnings (yellow for partial timeouts, red for complete failures, green for success).
+- Configurable refresh interval (`--refresh N`, default 30s).
+
+---
 
 ## Setup Guide
 
 ### Prerequisites
 
-1. **Install Python**:
-   - Download Python from [python.org](https://www.python.org/downloads/)
-   - During installation, make sure to check "Add Python to PATH"
-   - Click "Install Now" and wait for the installation to complete
-
+1. **Install Python** ([python.org](https://www.python.org/downloads/)) — make sure to tick "Add Python to PATH".
 2. **Install PyWin32**:
-   - Open Command Prompt (search for "cmd" in Windows search)
-   - Type the following command and press Enter:
-     ```
-     pip install pywin32
-     ```
+   ```
+   pip install pywin32
+   ```
+3. **Download PhoenixAPI** from [github.com/hatz2/PhoenixAPI](https://github.com/hatz2/PhoenixAPI) and extract it (e.g. to `C:\NosTale\PhoenixAPI`).
 
-3. **Download PhoenixAPI**:
-   - Download from [github.com/hatz2/PhoenixAPI](https://github.com/hatz2/PhoenixAPI)
-   - Save and extract the files to a folder (e.g., `C:\NosTale\PhoenixAPI`)
+### Install the bot
 
-### Setup Instructions
+Copy `nostale_market_bot.py` to `C:\NosTale\PhoenixAPI\python` (or wherever your PhoenixAPI installation lives — the script needs to be able to import `phoenixapi`).
 
-1. **Prepare the Bot**:
-   - Copy the `nostale_market_bot.py` file to `C:\NosTale\PhoenixAPI\python`
-   
-2. **Configure the Bot**:
-   - Open `nostale_market_bot.py` in a text editor (like Notepad)
-   - Find the `ITEMS` section and edit it to match your items (explained below)
-   - Save the file
+The repo includes a local `phoenixapi/` folder for development on Linux/WSL2 — on Windows you can rely on the PhoenixAPI installation instead.
 
-## Configuration Guide
+---
 
-The bot is configured through the `ITEMS` list in the script. Here's what each setting means:
+## Running
 
-```python
-ITEMS = [
-    {
-        "name": "Fairy",           # Display name for the item
-        "character": "war1",       # Your character name
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 5370 9116",  # Search packet
-        "register_template": "c_reg 0 1 0 9 4 1 0 5 {price} {tax} 2",  # Register packet
-        "min_price": 200000        # Minimum price (won't go below this)
-    },
-    # Add more items here
-]
+```bash
+# Profitability monitor (recommended for buy-and-flip workflows)
+python3 nostale_market_bot.py -monitor
+
+# Custom refresh interval (60 seconds)
+python3 nostale_market_bot.py -monitor --refresh 60
+
+# Relist loop (default mode)
+python3 nostale_market_bot.py
 ```
 
-### How to Configure Your Items
+On Windows the command is usually `py nostale_market_bot.py -monitor` instead of `python3`.
 
-1. **Character Name**:
-   - Change `"character": "war1"` to your character's name
+### Command-line options
 
-2. **Item Configuration**:
-   - For each item you want to monitor and sell, you need:
-     - `name`: A name to identify the item in logs
-     - `search_packet`: The packet to search for the item in NosBazar
-     - `register_template`: The packet to register your item
-     - `min_price`: Minimum price threshold (won't sell below this)
+| Flag | Default | Description |
+|---|---|---|
+| `-monitor` | off | Switch to profitability monitor mode. Without this flag the script runs the relist loop. |
+| `--refresh N` | `30` | Monitor refresh interval in seconds. Each pass takes ~2.5s × number-of-items, so very low values aren't useful. |
+| `-h` / `--help` | — | Print usage. |
 
-3. **Finding the Correct Packets**:
-   - You can find the correct packets by manually putting an item in NosBazar and 
-     watching what packets are sent in the logs
-   - **DO NOT CHANGE THE FORMAT** of packets - only change the item IDs and values
+### Prerequisites for `-monitor`
 
-### Example Item Configuration
+- Phoenix bot is running and a NosTale client matching each `character` field in `ITEMS` is attached.
+- Your character must eventually be standing next to a **Bibi Basar (NosBazar) NPC**. You can start the script *before* walking there — it'll just sit in waiting state and start querying as soon as you arrive. Same thing if you walk away mid-session: it auto-detects, drops back to waiting state, and resumes when you return. **No restart needed.**
 
-Here's an example for selling Gold Stones with a minimum price of 200,000:
+### Prerequisites for relist mode
+
+- Phoenix bot running and character attached.
+- The character has the items you want to sell **in inventory** (the script auto-detects the inventory slot per pass).
+- You're standing in front of the Bibi Basar NPC with the NosBazar window open client-side (relist mode does NOT auto-open the window — start it after clicking the NPC manually).
+
+---
+
+## Configuration
+
+Everything is driven by the `ITEMS` list near the top of `nostale_market_bot.py`. Each item is a dict.
+
+### Field reference
+
+| Field | Required for | Meaning |
+|---|---|---|
+| `name` | both | Display label only — **NOT** sent to NosBazar. The actual search uses the vnums inside `search_packet`. Pick whatever name helps you cross-reference your spreadsheet. |
+| `character` | both | Character name passed to `phoenixapi.create_api_from_name()`. |
+| `search_packet` | both | Full `c_blist` packet string. Set to `None` to disable an item entirely (both loops skip it). |
+| `vnum` | relist | Item VNUM — used to locate the item in your inventory. |
+| `inv_tab` | relist | `0`=Equip, `1`=Main, `2`=Etc — which inventory tab the item is in. |
+| `amount` | relist | How many pieces per listing. |
+| `unk1` / `unk2` / `durability` / `medal` | relist | Constants for the `c_reg` register packet. Defaults of `9 / 4 / 1 / 2` work for most items in Main/Etc tabs. |
+| `min_price` | relist | Floor price — won't undercut below this. Set to a huge number (`9999999999`) for monitor-only items so accidental relisting can't lose money. |
+| `nos_cost` | monitor | Cost in **NosMall ND** (premium currency). Fractional allowed (e.g. `0.5`). Used to compute `gold/ND` profitability. |
+| `npc_cost` | monitor | Cost in **gold** from an NPC vendor. Used to compute an `Nx` multiplier (NB price ÷ NPC cost). Mutually exclusive with `nos_cost` — if both are set, `nos_cost` wins. |
+
+### Example: monitor-only item
 
 ```python
 {
-    "name": "Gold Stone",
-    "character": "YourCharName",
-    "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 5370 9116",
-    "register_template": "c_reg 0 1 0 9 4 1 0 5 {price} {tax} 2",
-    "min_price": 200000
+    "name": "bubbl",
+    "character": "root2",
+    "vnum": 2174, "inv_tab": 2,
+    "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1261 2174 9480 10029",
+    "amount": 5, "nos_cost": 0.5,
+    "unk1": 10, "unk2": 3, "durability": 1, "medal": 2,
+    "min_price": 43000,
 }
 ```
 
-## Running the Bot
+### Example: NPC item (gold cost, no ND)
 
-1. **Start Phoenix Bot**:
-   - Launch NosTale and the Phoenix Bot
-   - Log in with your character
+```python
+{
+    "name": "Pet Food (NPC)",
+    "character": "root2", "vnum": 2077, "inv_tab": None,
+    "search_packet": "c_blist 0 0 0 0 0 0 0 0 11 2077 2078 2158 2187 2325 2663 2671 10013 10014 10024 10030",
+    "amount": 5,
+    "npc_cost": 300,  # gold per piece from NPC vendor
+    "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
+}
+```
 
-2. **Run the Market Bot**:
-   - Open Command Prompt (search for "cmd" in Windows search)
-   - Navigate to the bot directory by typing:
-     ```
-     cd C:\NosTale\PhoenixAPI\python
-     ```
-   - Run the bot with:
-     ```
-     py nostale_market_bot.py
-     ```
+### Capturing a `c_blist` packet for a new item
 
-3. **Using the Bot**:
-   - The bot will check prices every 30 seconds
-   - It automatically updates your prices to be 1 gold cheaper than competitors
-   - It will never go below your minimum price threshold
-   - To stop the bot, press Ctrl+C in the Command Prompt window
+1. Enable packet logging in Phoenix.
+2. In-game, open the NosBazar window and search for the item you want to track.
+3. Find the `[SEND] c_blist ...` line in the packet log and copy it verbatim into the `search_packet` field.
+4. Format reference:
+   ```
+   c_blist 0 0 0 0 0 0 0 0 <count> <vnum1> <vnum2> ...
+   ```
+   The 8 zeros are filter slots (page/type/subtype/etc). `<count>` must equal the number of vnums that follow.
+
+### Adding a new character
+
+Just use a different `character` value in any item dict. The script auto-discovers all unique characters in `ITEMS`, opens one connection per character at startup, and routes each item's queries through the right connection.
+
+---
+
+## Example monitor output
+
+```
+=== NosBazar Monitor [00:36:41] ===
+┌──────────────────┬────────┬────────────┬──────────────┬───────────────┐
+│ Item             │   Cost │   NB Price │       Profit │ Seller        │
+├──────────────────┼────────┼────────────┼──────────────┼───────────────┤
+│ bubbl            │ 0.5 ND │     13,798 │  27,596 g/ND │ †Artemisa†    │
+│ stone bles       │   1 ND │     26,999 │  26,999 g/ND │ MeaningLess   │
+│ Fairy Experience │ 2.5 ND │     61,000 │  24,400 g/ND │ Lindbloom     │
+│ ner skill ticket │  50 ND │  1,119,999 │  22,399 g/ND │ Xianzhou      │
+│ Wings of f       │ 0.5 ND │     10,799 │  21,598 g/ND │ MeaningLess   │
+│ en specialis     │ 100 ND │  1,948,888 │  19,488 g/ND │ Kaito         │
+│ ...                                                                    │
+│ Pet Food (NPC)   │  300 g │      1,996 │         6.7x │ DannyL14      │
+│ Draco            │      - │    128,900 │            - │ NecroHyper    │
+└──────────────────┴────────┴────────────┴──────────────┴───────────────┘
+
+Refreshing in 30s... (Ctrl+C to stop)
+```
+
+Items with no listings show `n/a`. Items with no cost (like `Draco` above) sort to the bottom for reference.
+
+---
+
+## Error handling
+
+The script handles common failures gracefully without crashing:
+
+| Situation | Behavior |
+|---|---|
+| Phoenix bot not running for one character | Yellow warning, that character's items are skipped, script keeps running with the rest. |
+| Phoenix bot not running for *any* character | Red error and clean exit. |
+| Bibi Basar NPC not nearby at startup | Red error, monitor enters **waiting state**, retries `open_bazaar` every refresh. Script keeps running. |
+| All item queries time out mid-session | Red error, monitor drops back into waiting state (no more search packets sent until the bazaar can be re-opened). |
+| Some items time out (transient drops) | Yellow warning naming the failed items, retried automatically once per pass. |
+| Item with no `search_packet` | Silently skipped (use `None` to disable items without removing them). |
+
+### What "waiting state" means
+
+When the bazaar can't be opened (NPC out of range), the monitor enters waiting state. In this state it sends ONLY the 4-packet `open_bazaar` sequence each refresh:
+```
+npc_req 2 10188              # request dialog with Bibi Basar
+n_run 60 0 2 10188           # click "NosBazar" option
+c_blist 0 0 0 0 0 0 0 0 0    # init bazaar listing
+c_slist 0 0 0                # init seller list
+```
+It does NOT send the per-item `c_blist` searches until `open_bazaar` succeeds again. This way moving away from the NPC won't get the character flagged for spam.
+
+---
+
+## Important notes
+
+- **Don't lower the inter-item sleep below 2.5s** in monitor mode. The game silently drops `c_blist` packets sent faster than ~2s apart.
+- **`name` field is display-only.** It's not sent to NosBazar — the search is purely by vnum from `search_packet`. Renaming items doesn't affect what gets queried.
+- **Verbose mode** (per-item `Sending search packet for ...` lines) is currently enabled in `monitor_items.query()`. Flip the `verbose=True` to `False` in that one call to silence it.
+- **The bot only modifies items you explicitly configure** in `ITEMS`. It will never touch other items in your inventory.
+- **Always test new items in monitor mode first** before relying on relist behavior.
+
+---
 
 ## Troubleshooting
 
-- **Bot can't connect**: Make sure Phoenix Bot is running and you're logged in
-- **Wrong items being updated**: Double-check your packet configurations
-- **Errors when running**: Make sure you have Python and PyWin32 installed correctly
+| Symptom | Likely cause |
+|---|---|
+| `RuntimeError: No bot windows found.` | Phoenix bot isn't running, or no client matches the `character` name. |
+| Monitor sits in waiting state forever | Character isn't actually next to a Bibi Basar NPC, or you're on a different map. |
+| Specific items always show `n/a` | The market genuinely has no listings for that item right now (try a popular item to confirm), or the captured `search_packet` is wrong. |
+| Specific items intermittently time out | Transient packet drops — the retry pass should catch most. If persistent, your inter-item pacing may be too aggressive. |
+| `KeyError` on a character name | An item in `ITEMS` references a character that failed to connect — check the connection warnings at startup. |
 
-## Safety Notes
+---
 
-- The bot only updates prices for items you specifically configure
-- It will never sell below the minimum price you set
-- Always monitor the bot initially to ensure it's working correctly
+## Files in this repo
 
-## Additional Help
-
-If you need more help, please check the PhoenixAPI documentation or seek help in NosTale forums or Discord groups.
+| File | What it is |
+|---|---|
+| `nostale_market_bot.py` | The main bot script (relist + monitor). |
+| `phoenixapi/` | Local copy of the PhoenixAPI Python bindings (for Linux/WSL2 development). On Windows, prefer the upstream PhoenixAPI install. |
+| `CLAUDE.md` | Architecture / internals reference for AI coding assistants editing this repo. |
+| `README.md` | This file. |
