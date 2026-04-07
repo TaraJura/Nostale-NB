@@ -1,111 +1,109 @@
-import json
-from win32gui import EnumWindows, GetWindowText
+import platform
+import subprocess
 from re import search
-from ctypes.wintypes import HWND, LPARAM
-from time import sleep
-from phoenixapi import phoenix
+from .api import PhoenixApi
 
 _ports: list[int] = []
+
 
 def find_all_api_ports() -> list[int]:
     """Find all ports of the current bot windows."""
     _ports.clear()
-    EnumWindows(_enum_windows_callback, 0)
+    if platform.system() == "Windows":
+        from win32gui import EnumWindows
+        EnumWindows(_enum_windows_callback, 0)
+    else:
+        _find_ports_via_powershell()
+        if not _ports:
+            _find_ports_via_netstat()
     return _ports.copy()
 
-def create_apis_from_names(character_names: list[str]) -> list[tuple[str, phoenix.Api]]:
-    """
-    Create API instances from a list of character names.
 
-    Returns:
-        list[tuple[str, phoenix.Api]]: A list of tuples containing character names and their corresponding API instances.
-    
-    Raises:
-        RuntimeError: If no bots are running or not all bots with the given character names are found.
-    """
+def _find_ports_via_powershell():
+    """Find Phoenix Bot ports using PowerShell window titles (for WSL environments)."""
+    ps_script = (
+        "Get-Process | Where-Object {$_.MainWindowTitle -like '*- Phoenix Bot*'} "
+        "| Select-Object -ExpandProperty MainWindowTitle"
+    )
+    try:
+        result = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-Command", ps_script],
+            capture_output=True, text=True, timeout=10
+        )
+        for line in result.stdout.strip().splitlines():
+            line = line.strip()
+            if "- Phoenix Bot" in line:
+                match = search(r"Bot:\d+ (\d+)", line)
+                if match:
+                    _ports.append(int(match.group(1)))
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
 
-    ports = find_all_api_ports()
-    apis = []
 
-    if len(ports) == 0:
-        raise RuntimeError("No bot windows found.")
-    
-    for port in ports:
-        api = phoenix.Api(port)
+def _find_ports_via_netstat():
+    """Fallback: find Phoenix Bot ports via netstat by checking which NostaleClientX
+    processes have listening TCP ports in the 50000+ range."""
+    ps_script = (
+        "Get-NetTCPConnection -State Listen "
+        "| Where-Object {$_.LocalPort -ge 50000 -and $_.LocalPort -le 65535} "
+        "| ForEach-Object { "
+        "  $proc = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; "
+        "  if ($proc.ProcessName -eq 'NostaleClientX') { $_.LocalPort } "
+        "}"
+    )
+    try:
+        result = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-Command", ps_script],
+            capture_output=True, text=True, timeout=15
+        )
+        for line in result.stdout.strip().splitlines():
+            line = line.strip()
+            if line.isdigit():
+                _ports.append(int(line))
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
 
-        # Ask the bot to give us the player info
-        api.query_player_information()
 
-        # Wait for the bot to respond
-        while api.working():
-            if api.empty():
-                sleep(0.01)
-                continue
+def create_api_from_port(port: int) -> PhoenixApi:
+    """Create an API instance by connecting directly to a known port."""
+    return PhoenixApi(port)
 
-            msg = api.get_message()
-            json_msg = json.loads(msg)
 
-            if json_msg["type"] == phoenix.Type.query_player_info.value:
-                if json_msg["player_info"]["name"] in character_names:
-                    character_names.remove(json_msg["player_info"]["name"])
-                    apis.append((json_msg["player_info"]["name"], api))
-                    break
-                else:
-                    api.close()
-
-    if (len(character_names) != 0):
-        raise RuntimeError("Could not find all bots with the given character names.")
-    
-    return apis
-
-def create_api_from_name(character_name: str) -> phoenix.Api:
+def create_api_from_name(character_name: str) -> PhoenixApi:
     """
     Create an instance of the API class from the character's name.
 
-    Returns:
-        phoenix.Api: An instance of the API class.
-    
     Raises:
         RuntimeError: If no bot with that name is found or no bots are running.
     """
-
     ports = find_all_api_ports()
 
     if len(ports) == 0:
         raise RuntimeError("No bot windows found.")
 
     for port in ports:
-        api = phoenix.Api(port)
+        try:
+            api = PhoenixApi(port)
+            player_obj_manager = api.player_obj_manager.get_player_obj_manager()
+            name = player_obj_manager["player"]["name"]
 
-        # Ask the bot to give us the player info
-        api.query_player_information()
-
-        # Wait for the bot to respond
-        while api.working():
-            if api.empty():
-                sleep(0.01)
-                continue
-
-            msg = api.get_message()
-            json_msg = json.loads(msg)
-
-            if json_msg["type"] == phoenix.Type.query_player_info.value:
-                if json_msg["player_info"]["name"] == character_name:
-                    return api
-                else:
-                    api.close()
+            if name == character_name:
+                return api
+        except Exception:
+            continue
 
     raise RuntimeError(f"Could not find bot with character name: {character_name}")
 
-def _enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> bool:
+
+def _enum_windows_callback(hwnd, lparam) -> bool:
     """Callback function to enumerate windows and check if it is a bot window."""
+    from win32gui import GetWindowText
     window_title = GetWindowText(hwnd)
 
     if "- Phoenix Bot" in window_title:
-        match: str = search(r"Bot:(\d+)", window_title)
-
+        match = search(r"Bot:\d+ (\d+)", window_title)
         if match:
-            port = (int)(match.group(1))
+            port = int(match.group(1))
             _ports.append(port)
 
     return True
