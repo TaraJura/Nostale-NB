@@ -1,6 +1,12 @@
 from phoenixapi.finder import create_api_from_name
+from items import ITEMS, DEFAULT_CHARACTER
 import argparse
 import time
+
+# Apply DEFAULT_CHARACTER to any item that doesn't override it. Per-item
+# "character" keys still take precedence, so multi-character setups work.
+for _it in ITEMS:
+    _it.setdefault("character", DEFAULT_CHARACTER)
 
 
 def calculate_tax(price, amount=5):
@@ -173,172 +179,6 @@ def check_and_update_price(api, item_config):
 
     print(f"{item_name} check complete")
     return price_found
-
-
-# Item configurations
-# vnum: item VNUM to find in inventory
-# inv_tab: 0=Equip, 1=Main, 2=Etc
-# amount: how many to sell per listing
-# nos_cost: how many ND (NosDollars) the item costs in NosMall
-#           - used by -monitor mode to compute gold/ND profitability
-# The slot is auto-detected from inventory!
-ITEMS = [
-    {
-        "name": "Fairy Experience",
-        "character": "root2",
-        "vnum": 5370,
-        "inv_tab": 1,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 5370 9116 13593 13594",
-        "amount": 5,
-        "nos_cost": 2.5,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2,
-        "min_price": 200000
-    },
-    {
-        "name": "Lord Dra",
-        "character": "root2",
-        "vnum": 5500,
-        "inv_tab": 1,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 1 5500",
-        "amount": 5,
-        "nos_cost": 0,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2,
-        "min_price": 31000
-    },
-    {
-        "name": "stone bles",
-        "character": "root2",
-        "vnum": 1362,
-        "inv_tab": 1,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 3 1362 5195 9075",
-        "amount": 5,
-        "nos_cost": 1,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2,
-        "min_price": 9999999999
-    },
-    {
-        "name": "bubbl",
-        "character": "root2",
-        "vnum": 2174,
-        "inv_tab": 2,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1261 2174 9480 10029",
-        "amount": 5,
-        "nos_cost": 0.5,
-        "unk1": 10, "unk2": 3, "durability": 1, "medal": 2,
-        "min_price": 43000
-    },
-    {
-        "name": "Wings of f",
-        "character": "root2",
-        "vnum": 2160,
-        "inv_tab": 2,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 2160 10048",
-        "amount": 5,
-        "nos_cost": 0.5,
-        "unk1": 10, "unk2": 3, "durability": 1, "medal": 2,
-        "min_price": 7000
-    },
-    {
-        "name": "en specialis",
-        "character": "root2", "vnum": 907, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 907 4240",
-        "amount": 5, "nos_cost": 100,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "ancel",
-        "character": "root2", "vnum": 1286, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 13 1286 1452 4717 5884 5885 5886 5887 5996 9041 9380 9874 13710 13731",
-        "amount": 5, "nos_cost": 5,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "ner skill ticket",
-        "character": "root2", "vnum": 5931, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 5931 5932 9109 9110",
-        "amount": 5, "nos_cost": 50,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "medicine",
-        "character": "root2", "vnum": 1765, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 5 1765 2159 2313 2390 10049",
-        "amount": 5, "nos_cost": 2,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "fairy bo",
-        "character": "root2", "vnum": 1296, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 3 1296 5194 9074",
-        "amount": 5, "nos_cost": 5,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "met pet food",
-        "character": "root2", "vnum": 2158, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 2158 10024",
-        "amount": 5, "nos_cost": 2,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "tarot card g",
-        "character": "root2", "vnum": 1904, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 1 1904",
-        "amount": 5, "nos_cost": 10,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "ment protec",
-        "character": "root2", "vnum": 1218, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1218 5369 9458 9459",
-        "amount": 5, "nos_cost": 20,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "sing amulet",
-        "character": "root2", "vnum": 282, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 8 282 498 4262 4264 5735 8541 8543 8544",
-        "amount": 5, "nos_cost": 50,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "higher SP Pro",
-        "character": "root2", "vnum": 1364, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1364 9464 9498 9925",
-        "amount": 5, "nos_cost": 5,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "wer SP Pro",
-        "character": "root2", "vnum": 1363, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1363 9463 9497 9924",
-        "amount": 5, "nos_cost": 5,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "speak",
-        "character": "root2", "vnum": 2173, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 2173 10028",
-        "amount": 5, "nos_cost": 0.5,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    {
-        "name": "perfum",
-        "character": "root2", "vnum": 1156, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 2 1156 1428",
-        "amount": 5, "nos_cost": 0.8,
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-    # ---- NPC items (cost in gold, not ND) ----
-    {
-        "name": "Pet Food (NPC)",
-        "character": "root2", "vnum": 2077, "inv_tab": None,
-        "search_packet": "c_blist 0 0 0 0 0 0 0 0 11 2077 2078 2158 2187 2325 2663 2671 10013 10014 10024 10030",
-        "amount": 5,
-        "npc_cost": 300,  # gold per piece from NPC vendor
-        "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
-    },
-]
 
 
 def monitor_items(apis, items, refresh=30):

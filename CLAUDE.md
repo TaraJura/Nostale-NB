@@ -125,15 +125,30 @@ Monitor flow with a two-state machine (`bazaar_open: bool`):
 5. Prints warnings: yellow `⚠ N item(s) timed out: name1, name2, ...` for partial failures.
 6. **If ALL items timed out** → red error + sets `bazaar_open = False`, dropping back into waiting state on the next iteration. No more search spam until the bazaar can be re-opened.
 
-### `ITEMS`
-List of dicts. See field reference below.
+### `ITEMS` (imported from `items.py`)
+
+The item list lives in a separate module: `items.py`. The main script imports `ITEMS` and `DEFAULT_CHARACTER` from there:
+
+```python
+from items import ITEMS, DEFAULT_CHARACTER
+
+for _it in ITEMS:
+    _it.setdefault("character", DEFAULT_CHARACTER)
+```
+
+`DEFAULT_CHARACTER` is applied via `setdefault` so per-item `"character"` overrides still win. This means:
+
+- **Single-character setup** (the common case): set `DEFAULT_CHARACTER = "yourname"` at the top of `items.py` once. Don't put `"character"` in any item dict.
+- **Multi-character setup**: leave `DEFAULT_CHARACTER` as your main one and add `"character": "altname"` only to the items that should run on the alt.
+
+When editing items, work in `items.py` - the main script doesn't need touching.
 
 ## Item config fields
 
 | Field | Required for | Meaning |
 |---|---|---|
 | `name` | both | Display label only — **NOT** sent to NosBazar. Searches are by vnum via `search_packet`. Match the user's spreadsheet names exactly (e.g. `bubbl`, `wer SP Pro`, `tarot card g`) so the table cross-references their notes. |
-| `character` | both | Character name passed to `create_api_from_name` |
+| `character` | optional | Character name passed to `create_api_from_name`. **Omit to inherit `DEFAULT_CHARACTER` from `items.py`.** Per-item override only needed for multi-character setups. |
 | `search_packet` | both | Full `c_blist` packet string (e.g. `c_blist 0 0 0 0 0 0 0 0 4 5370 9116 13593 13594`). `None` = skip this item entirely in both loops. |
 | `vnum` | relist | Item VNUM — used by `find_item_slot` to locate the item in inventory for relisting |
 | `inv_tab` | relist | `0`=Equip, `1`=Main, `2`=Etc — which inventory tab to scan |

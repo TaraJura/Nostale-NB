@@ -92,14 +92,19 @@ On Windows the command is usually `py nostale_market_bot.py -monitor` instead of
 
 ## Configuration
 
-Everything is driven by the `ITEMS` list near the top of `nostale_market_bot.py`. Each item is a dict.
+Everything is driven by **`items.py`** - a separate config file with two top-level values:
+
+- `DEFAULT_CHARACTER` - your in-game character name. Applied to every item that doesn't override it. Change this once at the top of `items.py` and all items follow.
+- `ITEMS` - the list of items to track. Each item is a dict.
+
+Editing `items.py` is the only thing you need to do to add/remove items, change costs, or switch characters. The main script `nostale_market_bot.py` doesn't need to be touched for normal config changes.
 
 ### Field reference
 
 | Field | Required for | Meaning |
 |---|---|---|
-| `name` | both | Display label only — **NOT** sent to NosBazar. The actual search uses the vnums inside `search_packet`. Pick whatever name helps you cross-reference your spreadsheet. |
-| `character` | both | Character name passed to `phoenixapi.create_api_from_name()`. |
+| `name` | both | Display label only - **NOT** sent to NosBazar. The actual search uses the vnums inside `search_packet`. Pick whatever name helps you cross-reference your spreadsheet. |
+| `character` | optional | Character name passed to `phoenixapi.create_api_from_name()`. **Omit to use `DEFAULT_CHARACTER`.** Set per-item only if you have multiple characters and want this specific item to use a different one. |
 | `search_packet` | both | Full `c_blist` packet string. Set to `None` to disable an item entirely (both loops skip it). |
 | `vnum` | relist | Item VNUM — used to locate the item in your inventory. |
 | `inv_tab` | relist | `0`=Equip, `1`=Main, `2`=Etc — which inventory tab the item is in. |
@@ -109,12 +114,11 @@ Everything is driven by the `ITEMS` list near the top of `nostale_market_bot.py`
 | `nos_cost` | monitor | Cost in **NosMall ND** (premium currency). Fractional allowed (e.g. `0.5`). Used to compute `gold/ND` profitability. |
 | `npc_cost` | monitor | Cost in **gold** from an NPC vendor. Used to compute an `Nx` multiplier (NB price ÷ NPC cost). Mutually exclusive with `nos_cost` — if both are set, `nos_cost` wins. |
 
-### Example: monitor-only item
+### Example: monitor-only item (uses DEFAULT_CHARACTER)
 
 ```python
 {
     "name": "bubbl",
-    "character": "root2",
     "vnum": 2174, "inv_tab": 2,
     "search_packet": "c_blist 0 0 0 0 0 0 0 0 4 1261 2174 9480 10029",
     "amount": 5, "nos_cost": 0.5,
@@ -128,11 +132,23 @@ Everything is driven by the `ITEMS` list near the top of `nostale_market_bot.py`
 ```python
 {
     "name": "Pet Food (NPC)",
-    "character": "root2", "vnum": 2077, "inv_tab": None,
+    "vnum": 2077, "inv_tab": None,
     "search_packet": "c_blist 0 0 0 0 0 0 0 0 11 2077 2078 2158 2187 2325 2663 2671 10013 10014 10024 10030",
     "amount": 5,
     "npc_cost": 300,  # gold per piece from NPC vendor
     "unk1": 9, "unk2": 4, "durability": 1, "medal": 2, "min_price": 9999999999,
+}
+```
+
+### Example: per-item character override (multi-character setup)
+
+```python
+{
+    "name": "alt-only item",
+    "character": "myAltChar",   # overrides DEFAULT_CHARACTER for this entry
+    "vnum": 1234, "inv_tab": 1,
+    "search_packet": "c_blist 0 0 0 0 0 0 0 0 1 1234",
+    ...
 }
 ```
 
@@ -149,7 +165,7 @@ Everything is driven by the `ITEMS` list near the top of `nostale_market_bot.py`
 
 ### Adding a new character
 
-Just use a different `character` value in any item dict. The script auto-discovers all unique characters in `ITEMS`, opens one connection per character at startup, and routes each item's queries through the right connection.
+For a single-character setup, just change `DEFAULT_CHARACTER` at the top of `items.py`. For multi-character setups, set `"character": "otherChar"` on the items that should use a different character. The script auto-discovers all unique characters in `ITEMS`, opens one connection per character at startup, and routes each item's queries through the right connection.
 
 ---
 
@@ -230,7 +246,8 @@ It does NOT send the per-item `c_blist` searches until `open_bazaar` succeeds ag
 
 | File | What it is |
 |---|---|
-| `nostale_market_bot.py` | The main bot script (relist + monitor). |
+| `nostale_market_bot.py` | The main bot script (relist + monitor). Doesn't need editing for normal config changes. |
+| `items.py` | Item configuration: `DEFAULT_CHARACTER` and the `ITEMS` list. **This is the file you edit to add/remove items or change costs.** |
 | `phoenixapi/` | Local copy of the PhoenixAPI Python bindings (for Linux/WSL2 development). On Windows, prefer the upstream PhoenixAPI install. |
 | `CLAUDE.md` | Architecture / internals reference for AI coding assistants editing this repo. |
 | `README.md` | This file. |
