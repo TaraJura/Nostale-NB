@@ -1,6 +1,7 @@
 NB Monitor:
 
-<img width="805" height="378" alt="image" src="https://github.com/user-attachments/assets/25bb4911-12b2-4b48-bb90-80e9cf855f84" />
+<img width="801" height="490" alt="image" src="https://github.com/user-attachments/assets/8f4da6e7-8b16-44f0-89e3-a6ebe1eeb73d" />
+
 
  
  # NosTale Market Bot
