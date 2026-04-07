@@ -195,7 +195,7 @@ ITEMS = [
         "min_price": 200000
     },
     {
-        "name": "Draco",
+        "name": "Lord Dra",
         "character": "root2",
         "vnum": 5500,
         "inv_tab": 1,
